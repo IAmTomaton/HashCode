@@ -1,7 +1,11 @@
+import math
+
+
 class Intersection:
 
     def __init__(self, id):
         self.id = id
+        self.streets = []
 
     def __str__(self):
         return 'inter: id: {0}'.format(self.id)
@@ -32,7 +36,6 @@ class Car:
             .format(self.id, self.streets)
 
 
-
 class Parser:
 
     @staticmethod
@@ -57,6 +60,7 @@ class Parser:
             transit_time = int(street_line[3])
             street = Street(i, first_int, second_int, street_name, transit_time)
             streets.append(street)
+            intersections[second_int].streets.append(street_name)
 
         cars = []
         for i in range(car_count):
@@ -68,20 +72,41 @@ class Parser:
 
 
 def main():
-    with open('input.txt') as file:
+    with open('d.txt') as file:
         text = file.read()
     simulation_time, score, intersections, streets, cars = Parser.parse_input(text)
-    print('3')
-    print('1')
-    print('2')
-    print('rue-d-athenes 2')
-    print('rue-d-amsterdam 1')
-    print('0')
-    print('1')
-    print('rue-de-londres 2')
-    print('2')
-    print('1')
-    print('rue-de-moscou 1')
+    visited_streets = {}
+    for car in cars:
+        for street in car.streets:
+            if street not in visited_streets:
+                visited_streets[street] = 0
+            visited_streets[street] += 1
+    with open('output.txt', 'w') as file:
+        output = ''
+        int_count = 0
+        for i in intersections:
+            street_count = 0
+            string = ''
+            maximum = 4
+            max_weight = 0
+            inter_streets = []
+            for s in i.streets:
+                if s in visited_streets:
+                    street_count += 1
+                    inter_streets.append(s)
+                    max_weight = visited_streets[s] if visited_streets[s] > max_weight else max_weight
+
+            for s in inter_streets:
+                t = visited_streets[s] / max_weight * maximum
+                t = math.ceil(t)
+                string += s + ' ' + str(t) + '\n'
+            if street_count > 0:
+                int_count += 1
+                output += str(i.id) + '\n'
+                output += str(street_count) + '\n'
+                output += string
+        file.write(str(int_count) + '\n')
+        file.write(output)
 
 
 if __name__ == '__main__':
